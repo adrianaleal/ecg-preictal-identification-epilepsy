@@ -56,24 +56,20 @@ variables2compute = {'correlation_between_features_pearson', ...
 % 'correlation_between_features_spearman', ...
 % 'correlation_between_features_kendall', ...
     
+variables2load = strcat(variables2compute, ['_' dimension_string '.mat']);
 n_variables2compute = numel(variables2compute);
 
-computeFromScratch = 1;
-
-subfolder2save = fullfile(cd, folder2save, dimension_string);
-if ~exist(subfolder2save, 'dir')
-    mkdir(subfolder2save)
-end
+computeFromScratch = 0;
 
 if computeFromScratch==1
     computeRedundancy(n_feat, n_comb, dim, variables2compute, ...
-        dimension_string, feature_dataset, comb, chosenDim, ...
-        n_variables2compute, subfolder2save)
+        variables2load, dimension_string, feature_dataset, comb, chosenDim, ...
+        n_variables2compute)
 else
     
     for ll = 1:n_variables2compute
-        eval(['load(fullfile(subfolder2save, [''' variables2compute{ll} ...
-            '''.mat]), ''' variables2compute{ll} ''')'])
+        eval(['load(fullfile(cd, folder2save, ''' variables2load{ll} ...
+            '''), ''' variables2compute{ll} ''')'])
     end
 end
 
@@ -88,8 +84,7 @@ if removeSeizures==1 || strcmp(chosenDim, 'seizures')
     feat2remove(indFeat2remove) = 1; 
     logicFeat2remove = logical(feat2remove);
     for ll = 1:n_variables2compute-1
-        eval([variables2compute{ll} ' = ' variables2compute{ll} ...
-            '(:,~logicFeat2remove);'])
+        eval([variables2compute{ll} ' = ' variables2compute{ll} '(:,~logicFeat2remove);'])
     end
     dim = dim-numel(indFeat2remove);
 end

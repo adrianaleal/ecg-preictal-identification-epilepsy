@@ -12,6 +12,7 @@ function [] = clustering_by_seizure(feat_names2analyse, feat_comb, ...
 % - outer_folder_path (char): main folder path
 
 
+
 plotFeatComb = 0;
 
 % indexes of features for each feaure combination:
