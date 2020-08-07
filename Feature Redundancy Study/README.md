@@ -6,7 +6,8 @@ Code to perform a feature redundancy study using the following two measures:
 - Pearson's correlation coefficient
 - Average mutual information using Thomas et al. Matlab code (https://www.sciencedirect.com/science/article/pii/S0022249614000571)
 
-How to run the code:
+
+** How to run the code: ** 
 
 1 - Run file main_get_feature_dataset.m to obtain the feature dataset.
 
