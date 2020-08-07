@@ -16,7 +16,7 @@ if ~exist(dataset_folder_path, 'dir')
     mkdir(dataset_folder_path)
 end
 
-% load feature data>
+% load feature dataset
 load(fullfile(dataset_folder_path, 'structureData.mat'))
 variables2load = {'feat_names2analyse', 'n_wins', 'n_seizures', ...
     'compTimeTable', 'seizure_struct'}';
@@ -29,14 +29,13 @@ clear structureData
 load(fullfile(dataset_folder_path, 'feature_dataset_240min_before_seizure_3D.mat'), ...
     'feature_dataset_240min_before_seizure_3D')
 
-seizure_names = {seizure_struct(:).seizure_name};
+seizure_names = {seizure_struct(:).seizure_name}';
 
 % get the patients' names to initialize the structure to save the results
 C = cellfun(@(x)strsplit(x, '_' ), seizure_names, 'UniformOutput', false);
 seizure_names_separated = vertcat(C{:});
-pats_name = unique(seizure_names_separated(:,2),'stable');
-n_pat = numel(pats_name);
-clear C pats_name 
+patients_name = unique(seizure_names_separated(:,2),'stable');
+n_pat = numel(patients_name);
 
 
 %% Feature redundancy study
