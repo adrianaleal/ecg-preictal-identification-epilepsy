@@ -60,7 +60,7 @@ variables2compute = {'correlation_between_features_pearson', ...
     
 n_variables2compute = numel(variables2compute);
 
-computeRedundancy = 0;
+computeRedundancy = 1;
 
 subfolder2save = fullfile(cd, folder2save, dimension_string);
 if ~exist(subfolder2save, 'dir')
@@ -70,9 +70,8 @@ end
 if computeRedundancy==1
     computeRedundancy(n_feat, n_comb, dim, variables2compute, ...
         dimension_string, feature_dataset, comb, chosenDim, ...
-        n_variables2compute, subfolder2save)
+        n_variables2compute, subfolder2save);
 else
-    
     for ll = 1:n_variables2compute
         eval(['load(fullfile(subfolder2save, ''' variables2compute{ll} ...
             '.mat''), ''' variables2compute{ll} ''')'])
@@ -122,7 +121,7 @@ mutual_information_between_features = mutual_information_between_features_AMI;
 %% use the LDA classification to identify the best threshold for each 
 % measure
 
-computeLDAclassification = 0;
+computeLDAclassification = 1;
 variablesLDA = {'SE_mat_corr', 'SP_mat_corr', 'corr_threshold_vec', ...
     'SE_mat_mi', 'SP_mat_mi', 'mi_threshold_vec'};
 variablesLDA2load = strcat(variablesLDA, ['_' dimension_string '.mat']);
@@ -177,7 +176,7 @@ mi_threshold = selectMeasureThreshold(mutual_information_between_features, ...
 
 %% get the features for which the threshold was overcome
 
-getMeasuresValues = 0;
+getMeasuresValues = 1;
 if getMeasuresValues
     save_correlated_features = [];
     save_dependent_features = [];
