@@ -11,18 +11,20 @@ function [validity_indices_out, chosenClusteringSolution] = GaussianMixtureClust
 
 
 % ncluster = 4; % number of clusters
-Sigma = {'diagonal','full'};
+Sigma = {'diagonal', 'full'};
 nSigma = numel(Sigma);
-SharedCovariance = {true,false};
-SCtext = {'true','false'};
+SharedCovariance = {true, false};
+
+SCtext = {'true', 'false'};
+
 nSC = numel(SharedCovariance);
-options = statset('MaxIter',3000); % Increase number of EM iterations
+options = statset('MaxIter', 4000); % Increase number of EM iterations
 
 if plotFigures
     d = 50;
-    x1 = linspace(min(data2cluster(:,1)) - 2, max(data2cluster(:,1)) + 2,d);
-    x2 = linspace(min(data2cluster(:,2)) - 2,max(data2cluster(:,2)) + 2,d);
-    [x1grid,x2grid] = meshgrid(x1,x2);
+    x1 = linspace(min(data2cluster(:,1)) - 2, max(data2cluster(:,1)) + 2, d);
+    x2 = linspace(min(data2cluster(:,2)) - 2, max(data2cluster(:,2)) + 2, d);
+    [x1grid, x2grid] = meshgrid(x1, x2);
     
     X0 = [x1grid(:) x2grid(:)];
     threshold = sqrt(chi2inv(0.99,2));
@@ -111,9 +113,9 @@ for ii = 1:nSigma
             Legends = {};
             
             
-            %             if numel(nClusterSolution)<ncluster
-            %                 disp('problem')
-            %             end
+            % if numel(nClusterSolution)<ncluster
+            %    disp('problem')
+            % end
             
             for m = 1:numel(nClusterSolution)
                 idx = mahalDist(:,nClusterSolution(m))<=threshold;

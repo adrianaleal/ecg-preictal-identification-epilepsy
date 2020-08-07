@@ -1,5 +1,6 @@
 function [] = clustering_by_seizure(feat_names2analyse, feat_comb, ...
-    patients_name, seizure_names, clustering_folder_path, outer_folder_path)
+    patients_name, seizure_names, clustering_folder_path, ...
+    features_folder_path)
 
 
 
@@ -9,7 +10,7 @@ function [] = clustering_by_seizure(feat_names2analyse, feat_comb, ...
 % - patients_name (cell): patients index name 
 % - seizure_names (cell): seizures index name
 % - clustering_folder_path (char): folder to save the clustering results
-% - outer_folder_path (char): main folder path
+% - features_folder_path (char): main folder path
 
 
 plotFeatComb = 0;
@@ -50,23 +51,19 @@ end
 
 % *************************************************************************
 
-% for seizure original data loading:
-feat_folder = 'ExtractedFeaturesNoEctopicBeatsOverlap';
-
 
 plotClustering = 0;
 opts_KMEANS = statset('Display','final');
 
-% parfor (ll = 1:size(comb,1), 'debug')
-parfor pp = 1:numel(patients_name)
+% to run in paralel just replace 'for' by 'parfor' bellow:
+for pp = 1:numel(patients_name)
     
     
     % for loading feature original data for each seizure:
     file_name = patients_name{pp};
     disp(['Patient' file_name])
     patFolder2save = ['pat_' file_name];
-    seizFolders = dir(fullfile(outer_folder_path,'ResultsEPILEPSIAE', ...
-        feat_folder, patFolder2save));
+    seizFolders = dir(fullfile(features_folder_path, patFolder2save));
     seizFolders = seizFolders(~ismember({seizFolders.name},{'.','..'}));
     
     
@@ -75,7 +72,7 @@ parfor pp = 1:numel(patients_name)
         mkdir(patFolderPath)
     end
     
-    n_seizures_pat = sum(strcmp(seizure_names,file_name));
+    n_seizures_pat = sum(strcmp(seizure_names, file_name));
     % ind_seizures_pat = find(strcmp(file_name,C2(:,2)));
     
     for ss = 1:n_seizures_pat % goes through the number of seizures
@@ -266,12 +263,11 @@ parfor pp = 1:numel(patients_name)
                 % % Cluster the data with structure defined by neighbours
                 % Y = pdist(adjacency_matrix,'euclidean');
                 Z = linkage(feat_data_norm_no_NaN,'ward','euclidean');
-                % Y = [];
                 
                 for ncluster = k_cluster2test_vec
                     % disp([agglo_name num2str(ncluster)])
                     
-                    clusteringSolutionAgglo = cluster(Z,'maxclust',ncluster);
+                    clusteringSolutionAgglo = cluster(Z, 'maxclust', ncluster);
                     
                     % add the cluster values to the proper non NaN positions:
                     clusteringSolutionAggloFinal = NaN(size(ind_NaN));
@@ -461,10 +457,7 @@ parfor pp = 1:numel(patients_name)
             end
             gmm_name = [];
             
-            
-            
-            
-            
+
         end
         
 
