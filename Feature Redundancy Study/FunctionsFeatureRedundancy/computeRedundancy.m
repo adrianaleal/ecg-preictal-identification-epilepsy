@@ -24,7 +24,7 @@ for ii = 1:dim
     elseif strcmp(chosenDim, 'windows')
         data2compare = squeeze(feature_dataset(:,:,ii));
     end
-
+    
     % get the Pearson's correlatio coefficient for each dimension:
     if any(strcmp(variables2compute, 'correlation_between_features_pearson'))
         correlation_between_features_pearson(:,ii) = corr_features(data2compare);
@@ -73,8 +73,8 @@ for ii = 1:dim
 end
 
 for ll = 1:n_variables2compute
-    eval(['save(fullfile(subfolder2save, [''' variables2compute{ll} ...
-        '''.mat]), ''' variables2compute{ll} ''')'])
+    eval(['save(fullfile(subfolder2save, ''' variables2compute{ll} ...
+        '.mat''), ''' variables2compute{ll} ''')'])
 end
 
 end

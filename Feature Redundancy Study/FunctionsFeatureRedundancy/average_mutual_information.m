@@ -26,7 +26,6 @@ P_y = univariate_kernel_density(Y, Y, hy, plotFigure);
 % Estimated joint probability density function:
 JointP_xy = bivariate_kernel_density(data, data, hx, hy, plotFigure);
 
-
 % If the log base 2 is used, the units of mutual information are bits.
 AMI = sum(log2(JointP_xy./(P_x.*P_y)))/n;
 

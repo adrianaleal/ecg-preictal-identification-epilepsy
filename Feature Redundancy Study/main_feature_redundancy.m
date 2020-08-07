@@ -8,7 +8,7 @@ set(groot, 'DefaultTextInterpreter','tex')
 cd ..
 outer_folder_path = cd;
 % load variable patients_info_final:
-load('patients_info_final_preictal_study_240min_before_seiz')
+load('patients_info_preictal_study_240min_before_seiz')
 cd('Feature Redundancy Study')
     
 dataset_folder_path = fullfile(outer_folder_path, 'FeatureDataset');
@@ -62,6 +62,12 @@ if exist(folder2savePath, 'dir')
     addpath(genpath(folder2savePath));
 end
 
+functionsFolder = 'utils';
+folder2savePath = fullfile(outer_folder_path, functionsFolder);
+if exist(folder2savePath, 'dir')
+    % Add that folder plus all subfolders to the path.
+    addpath(genpath(folder2savePath));
+end
 
 chosenDim = 'windows' % other option is 'seizures'
 results_feat_selection = feature_redundancy_assessment(...

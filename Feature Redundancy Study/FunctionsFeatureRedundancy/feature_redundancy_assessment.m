@@ -14,7 +14,9 @@ function results_out = feature_redundancy_assessment(feature_dataset, ...
 %                     to compute redundancy  
 
 % Outputs:
-% - results_out (struct): 
+% - results_out (struct): information about the correlated features and the
+%                         number of windows/seizures for which redundancy
+%                         was verified for each feature combination
 
 
 
@@ -58,22 +60,22 @@ variables2compute = {'correlation_between_features_pearson', ...
     
 n_variables2compute = numel(variables2compute);
 
-computeFromScratch = 1;
+computeRedundancy = 0;
 
 subfolder2save = fullfile(cd, folder2save, dimension_string);
 if ~exist(subfolder2save, 'dir')
     mkdir(subfolder2save)
 end
 
-if computeFromScratch==1
+if computeRedundancy==1
     computeRedundancy(n_feat, n_comb, dim, variables2compute, ...
         dimension_string, feature_dataset, comb, chosenDim, ...
         n_variables2compute, subfolder2save)
 else
     
     for ll = 1:n_variables2compute
-        eval(['load(fullfile(subfolder2save, [''' variables2compute{ll} ...
-            '''.mat]), ''' variables2compute{ll} ''')'])
+        eval(['load(fullfile(subfolder2save, ''' variables2compute{ll} ...
+            '.mat''), ''' variables2compute{ll} ''')'])
     end
 end
 
@@ -120,7 +122,7 @@ mutual_information_between_features = mutual_information_between_features_AMI;
 %% use the LDA classification to identify the best threshold for each 
 % measure
 
-computeLDAclassification = 1;
+computeLDAclassification = 0;
 variablesLDA = {'SE_mat_corr', 'SP_mat_corr', 'corr_threshold_vec', ...
     'SE_mat_mi', 'SP_mat_mi', 'mi_threshold_vec'};
 variablesLDA2load = strcat(variablesLDA, ['_' dimension_string '.mat']);
@@ -136,12 +138,12 @@ if computeLDAclassification
         getLDAclassification(mutual_information_between_features);
     
     for ll = 1:n_variablesLDA
-        eval(['save(fullfile(cd, folder2save, ''' variablesLDA2load{ll} ...
+        eval(['save(fullfile(cd, subfolder2save, ''' variablesLDA2load{ll} ...
             '''), ''' variablesLDA{ll} ''')'])
     end    
 else    
     for ll = 1:n_variablesLDA
-        eval(['load(fullfile(cd, folder2save, ''' variablesLDA2load{ll} ...
+        eval(['load(fullfile(cd, subfolder2save, ''' variablesLDA2load{ll} ...
             '''), ''' variablesLDA{ll} ''')'])
     end    
 end
@@ -153,27 +155,29 @@ method_info = {'PCC', ''};
 corr_threshold = selectMeasureThreshold(correlation_between_features, ...
     SE_mat_corr, SP_mat_corr, corr_threshold_vec, n_comb, method_info);
 
-name2save = [method_info{1} '_feature_redundancy_threshold'];
-export_fig(fullfile(cd, folder2save, [name2save '.pdf']), '-painters', ...
-    '-transparent')
-saveas(gcf,fullfile(cd, folder2save, [name2save '.fig']))
-saveas(gcf,fullfile(cd, folder2save, [name2save '.png']))
+% SAVE FIGURE:
+% name2save = [method_info{1} '_feature_redundancy_threshold'];
+% export_fig(fullfile(cd, subfolder2save, [name2save '.pdf']), '-painters', ...
+%     '-transparent')
+% saveas(gcf,fullfile(cd, subfolder2save, [name2save '.fig']))
+% saveas(gcf,fullfile(cd, subfolder2save, [name2save '.png']))
 
 
 method_info = {'AMI', ' (bits)'};
 mi_threshold = selectMeasureThreshold(mutual_information_between_features, ...
     SE_mat_mi, SP_mat_mi, mi_threshold_vec, n_comb, method_info);
-% mi_threshold = 1;
-name2save = [method_info{1} '_feature_redundancy_threshold'];
-export_fig(fullfile(cd, folder2save, [name2save '.pdf']), '-painters', ...
-    '-transparent')
-saveas(gcf,fullfile(cd, folder2save, [name2save '.fig']))
-saveas(gcf,fullfile(cd, folder2save, [name2save '.png']))
+
+% SAVE FIGURE:
+% name2save = [method_info{1} '_feature_redundancy_threshold'];
+% export_fig(fullfile(cd, subfolder2save, [name2save '.pdf']), '-painters', ...
+%     '-transparent')
+% saveas(gcf,fullfile(cd, subfolder2save, [name2save '.fig']))
+% saveas(gcf,fullfile(cd, subfolder2save, [name2save '.png']))
 
 
 %% get the features for which the threshold was overcome
 
-getMeasuresValues = 1;
+getMeasuresValues = 0;
 if getMeasuresValues
     save_correlated_features = [];
     save_dependent_features = [];
@@ -202,117 +206,97 @@ if getMeasuresValues
         
     end
     
-    save(fullfile(cd, folder2save, ['save_correlated_features_' dimension_string '.mat']), ...
-        'save_correlated_features')
-    save(fullfile(cd, folder2save, ['save_dependent_features_' dimension_string '.mat']), ...
-        'save_dependent_features')
+    save(fullfile(cd, subfolder2save, ['save_correlated_features_' ...
+        dimension_string '.mat']), 'save_correlated_features')
+    save(fullfile(cd, subfolder2save, ['save_dependent_features_' ...
+        dimension_string '.mat']), 'save_dependent_features')
     
 else
-    load(fullfile(cd, folder2save, ['save_correlated_features_' dimension_string '.mat']), ...
+    load(fullfile(cd, subfolder2save, ['save_correlated_features_' dimension_string '.mat']), ...
         'save_correlated_features')
-    load(fullfile(cd, folder2save, ['save_dependent_features_' dimension_string '.mat']), ...
+    load(fullfile(cd, subfolder2save, ['save_dependent_features_' dimension_string '.mat']), ...
         'save_dependent_features')
 end
 
 
-%% get features for high correlation
-featureSelection = 0
+%% get graph for correlation
+featureSelection = 0;
 
 close all
 figure()
 set(gcf,'units','normalized','outerposition',[0 0 0.51 1])
 ax(1) = subplot_tight(2,1,1, [0.04, 0.04]);
 method_info = {'PCC', num2str(corr_threshold)};
-[correlatedFeatures2remove, selected_features_namesCorr, ...
-    selected_features_indexesCorr] = getFeatureSet(save_correlated_features, ...
-    method_info, feat_names2analyse, chosenDim, ax(1), featureSelection);
+restructureGraph = 0;
+% if we are plotting the graph for the first time, set restructureGraph = 0
+% afterwards we can manually change the layout of the nodes and edges
 
-results_out.correlatedFeatures2remove = correlatedFeatures2remove;
-results_out.selected_features_namesCorr = selected_features_namesCorr;
-results_out.selected_features_indexesCorr = selected_features_indexesCorr;
+[redundadantFeatures2removePCC, selected_features_namesPCC, ...
+    selected_features_indexesPCC] = getFeatureSet(save_correlated_features, ...
+    method_info, feat_names2analyse, chosenDim, ax(1), featureSelection, ...
+    restructureGraph);
 
-
-% save graph images
-name2save = [method_info{1} '_feature_redundancy_graph'];
-export_fig(fullfile(cd, folder2save, [name2save '.pdf']), '-painters', ...
-    '-transparent')
-saveas(gcf,fullfile(cd, folder2save, [name2save '.fig']))
-
-% save plots containing the threshold for either the number of windows or
-% the number of seizures
-name2save = [method_info{1} '_feature_redundancy_graph'];
-export_fig(fullfile(cd, folder2save, [method_info{1} ...
-    '_feature_selection_overlap_no_interpolation_windows.pdf']), ...
-    '-painters','-transparent')
-saveas(gcf,fullfile(cd, folder2save, [method_info{1} ...
-    '_feature_selection_overlap_no_interpolation_windows.fig']))
+results_out.redundadantFeatures2removePCC = redundadantFeatures2removePCC;
+results_out.selected_features_namesPCC = selected_features_namesPCC;
+results_out.selected_features_indexesPCC = selected_features_indexesPCC;
 
 
-%% get features for high mutual information
+% SAVE GRAPH FIGURES:
+% name2save = [method_info{1} '_feature_redundancy_graph'];
+% export_fig(fullfile(cd, subfolder2save, [name2save '.pdf']), '-painters', ...
+%     '-transparent')
+% saveas(gcf,fullfile(cd, subfolder2save, [name2save '.fig']))
+
+% SAVE PLOTS CONTAINING THE THRESHOLD FOR EITHER THE NUMBER OF WINDOWS OR
+% THE NUMBER OF SEIZURES:
+% name2save = [method_info{1} '_feature_redundancy_graph'];
+% export_fig(fullfile(cd, subfolder2save, [method_info{1} ...
+%     '_feature_selection_overlap_no_interpolation_windows.pdf']), ...
+%     '-painters','-transparent')
+% saveas(gcf,fullfile(cd, subfolder2save, [method_info{1} ...
+%     '_feature_selection_overlap_no_interpolation_windows.fig']))
+
+
+%% get graph for mutual information
 
 
 ax(2) = subplot_tight(2,1,2, [0.04, 0.04]);
 method_info = {'AMI', num2str(mi_threshold)};
-[features2removeMI, selected_features_namesMI, ...
-    selected_features_indexes_MI] = getFeatureSet(save_dependent_features, ...
-    method_info, feat_names2analyse, chosenDim, ax(2), featureSelection);
+[selected_features_indexesAMI, selected_features_namesAMI, ...
+    selected_features_indexes_AMI] = getFeatureSet(save_dependent_features, ...
+    method_info, feat_names2analyse, chosenDim, ax(2), featureSelection, ...
+    restructureGraph);
 
-results_out.features2removeMI = features2removeMI;
-results_out.selected_features_namesMI = selected_features_namesMI;
-results_out.selected_features_indexes_MI = selected_features_indexes_MI;
+results_out.selected_features_indexesAMI = selected_features_indexesAMI;
+results_out.selected_features_namesAMI = selected_features_namesAMI;
+results_out.selected_features_indexes_AMI = selected_features_indexes_AMI;
 
 % the features here were selected by the user, so that they are in
 % accordance with the features selected in correlation
 
+if featureSelection
+    indexes_all_feat = 1:n_original_feat;
+    selected_features_total_ind = unique([selected_features_indexes_AMI; selected_features_indexesPCC]);
+    logical_indexes = ismember((1:n_original_feat),selected_features_total_ind);
 
-indexes_all_feat = 1:n_original_feat;
-selected_features_total_ind = unique([selected_features_indexes_MI; selected_features_indexesCorr]);
-logical_indexes = ismember((1:n_original_feat),selected_features_total_ind);
+    results_out.indexesFeat2Remove = indexes_all_feat(~logical_indexes);
+end
 
-results_out.indexesFeat2Remove = indexes_all_feat(~logical_indexes);
+% SAVE GRAPH FIGURES:
+% name2save = [method_info{1} '_feature_redundancy_graph'];
+% export_fig(fullfile(cd, folder2save, [name2save '.pdf']), '-painters', ...
+%     '-transparent')
+% saveas(gcf,fullfile(cd, folder2save, [name2save '.fig']))
 
-
-% export_fig(fullfile(cd, folder2save, [method_info{1}, ...
-%     '_feature_selection_overlap_no_interpolation.pdf']), ...
-%     '-painters','-transparent')
-% saveas(gcf,fullfile(cd, folder2save, [method_info{1} ...
-%     '_feature_selection_overlap_no_interpolation.fig']))
-
+% SAVE PLOTS CONTAINING THE THRESHOLD FOR EITHER THE NUMBER OF WINDOWS OR
+% THE NUMBER OF SEIZURES:
+% name2save = [method_info{1} '_feature_redundancy_graph'];
 % export_fig(fullfile(cd, folder2save, [method_info{1} ...
 %     '_feature_selection_overlap_no_interpolation_windows.pdf']), ...
 %     '-painters','-transparent')
 % saveas(gcf,fullfile(cd, folder2save, [method_info{1} ...
 %     '_feature_selection_overlap_no_interpolation_windows.fig']))
 
-% export_fig(fullfile(cd, folder2save, ...
-%     ['feature_selection_overlap_no_interpolation_' dimension_string '.pdf']), ...
-%     '-painters','-transparent')
-% saveas(gcf,fullfile(cd, folder2save, ...
-%     ['feature_selection_overlap_no_interpolation_' dimension_string '.fig']))
-
-
-%% evaluate behaviour of correlated features over time
-
-% n_seizures = size(feature_dataset,1);
-%
-% for ii = 1:n_seizures
-%
-%     for jj = 1:size(correlatedFeatures2remove,1)
-%
-%         % visualy inspect the relationship among the features
-%
-%         c = time_dataset(ii,:);
-%         feat1_data = feature_dataset(ii,cell2mat(correlatedFeatures2remove(jj,2)),:);
-%         feat2_data = feature_dataset(ii,cell2mat(correlatedFeatures2remove(jj,2)),:);
-%         figure(1)
-%         scatter(feat1_data,feat2_data,[],c,'*') % só o canal 1
-%         xlabel(correlatedFeatures2remove{jj,1})
-%         ylabel(correlatedFeatures2remove{jj,3})
-%         title(['Seizure ' num2str(ii)])
-%         pause
-%     end
-%
-% end
 
 
 end
@@ -339,7 +323,7 @@ end
 
 end
 
-function [measure_threshold] = selectMeasureThreshold(measure, SE_mat, ...
+function measure_threshold = selectMeasureThreshold(measure, SE_mat, ...
     SP_mat, measure_threshold_vec, n_comb2, method_info)
 
 
@@ -355,10 +339,16 @@ for ii = 1:numel(measure_threshold_vec)
     save_ratio(ii) = sum(sum(mutual_information_group1))/numel(measure);
 end
 
-indexes_R = (save_ratio>=0.069 & (measure_threshold_vec>=0.4)');
+% The threshold for each measure corresponds to the first maximum of GM for
+% which a ratio, R (variable save_ratio), between the number of samples in 
+% the group of data crossing the tested thresholds, th = 0.01, 0.02, 0.03, 
+% ..., 1, and the total number of samples, N = 496 x 2768, was higher than 
+% 5%.
+
+indexes_R = (save_ratio>=0.05 & (measure_threshold_vec>=0.4)');
 
 geometric_mean_indexes_R = geometric_mean(indexes_R);
-[~,I_GM] = max(geometric_mean_indexes_R,[],1);
+[~, I_GM] = max(geometric_mean_indexes_R,[],1);
 
 measure_threshold_vec_indexsR = measure_threshold_vec(indexes_R);
 measure_threshold = measure_threshold_vec_indexsR(I_GM);
