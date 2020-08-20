@@ -42,9 +42,8 @@ n_pat = numel(patients_name);
 
 
 
-%% Perform clustering
+%% Perform cluster solution evaluation
 
-% to perform clustering:
 
 % defined number of features to combine(e.g. 3-by-3 or 2-by-2)
 feat_comb = 3;
@@ -54,13 +53,14 @@ clustering_folder_path = fullfile(cd, 'ResultsClustering', ...
     ['ResultsClusteringFeatComb' num2str(feat_comb)]);
 
 
-% add the clustering functions to the path
-functionsFolder = 'FunctionsClustering';
+% add the clustering evaluation functions to the path
+functionsFolder = 'FunctionsClusterSolutionEvaluation';
 folder2savePath = fullfile(cd, functionsFolder);
 if exist(folder2savePath, 'dir')
     % Add that folder plus all subfolders to the path.
     addpath(genpath(folder2savePath));
 end
+
 
 functionsFolder = 'utils';
 folder2savePath = fullfile(outer_folder_path, functionsFolder);
@@ -70,12 +70,11 @@ if exist(folder2savePath, 'dir')
 end
 
 
+
 % tic
-clustering_by_seizure(feat_names2analyse, feat_comb, patients_name, ...
-    seizure_names_separated(:,2), clustering_folder_path, feature_folder_path);
-% time_clustering = toc;
-% disp(['Elapsed time for clustering: ' num2str(time_clustering/60/60) ' hours'])
-% save([feat_folder '_clustering.mat', time_clustering])
+clustering_solution_evaluation_by_seizure(feat_names2analyse, feat_comb, ...
+    patients_name, clustering_folder_path)
+
 
 if exist(folder2savePath, 'dir')
     % Remove that folder plus all subfolders to the path.

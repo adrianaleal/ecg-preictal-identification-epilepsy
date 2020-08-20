@@ -1,15 +1,30 @@
 function [centroids_matrix, clustering_solutions_matrix] = getDBSCANClustering(dimension, ...
-    feat_data_norm, feat_names, time_min, plotClustering, n_epsilon4dbscan)
+    data2cluster, ind_NaN, feat_names, time_min, plotClustering, n_epsilon4dbscan)
+
+
+
+% Inputs:
+% - data2cluster (double): matrix whose columns contain information for
+%                          each feature
+% - ind_NaN (logical): indexes of the NaN values across the features
+% - plotFigure (double): flag to plot the clustering result
+% - feat_names (cell): cell array containing the feature names 
+% - time_min (double): vector of times in minutes
+% - plotClustering (double): flag to plot the clustering solutions 
+% - n_epsilon4dbscan (double): number of epsilon values to perform clustering
+
+% Outputs:
+% - centroids_matrix (cell): cell array containing the centroids for each 
+%                            distance of DBSCAN
+% - clustering_solutions_matrix (cell): cell array containing the
+%                                       clustering solutions for each 
+%                                       distance of DBSCAN
 
 
 centroids_matrix = cell(n_epsilon4dbscan,1);
 clustering_solutions_matrix = cell(n_epsilon4dbscan,1);
 
-
-ind_NaN = any(isnan(feat_data_norm),2);
-feat_data_norm_no_NaN = feat_data_norm(~ind_NaN,:);
-
-%% Run DBSCAN Clustering Algorithm on the features intervals
+%% Run DBSCAN Clustering Algorithm
 
 % since data is normalized it is possible do define different
 % epsilon measures in the range [0 1], without needing to find an
@@ -28,7 +43,7 @@ count_cluster_methods = 1;
 
 count_dbscan = 1;
 stop = 1;
-% eps: Two points are considered neighbors if the distance
+% epsilon: Two points are considered neighbors if the distance
 % between the two points is below the threshold epsilon.
 % epsilon_DBSCAN_start = 0.05;
 %
@@ -43,7 +58,7 @@ stop = 1;
 
 % uma forma
 thresholds = [0.1 0.15 0.2 0.3];
-eps_vec = thresholds;
+epsilon_vec = thresholds;
 % inds = zeros(numel(thresholds),1);
 % for tt = 1:numel(thresholds)
 %     inds_vec = find(mean_sorted_distances>thresholds(tt));
@@ -63,36 +78,44 @@ eps_vec = thresholds;
 
 while stop
     % epsilon = epsilon_vec(ndist);
-    epsilon_DBSCAN_start = eps_vec(count_dbscan);
+    epsilon_DBSCAN_start = epsilon_vec(count_dbscan);
     
     plotFigure = 0;
     % the cluster solution of DBSCAN has zeros corresponding to
     % noisy points
-    clusteringSolutionDBSCAN = DBSCAN(feat_data_norm_no_NaN, ...
-        epsilon_DBSCAN_start, MinPts_DBSCAN, plotFigure);
+    
+    if isempty(epsilon_DBSCAN_start)
+        epsilon_DBSCAN_start = getEpsilonDBSCAN(data2cluster, plotFigure);
+    end
+    
+    clusteringSolutionDBSCAN = DBSCAN(data2cluster, ...
+        epsilon_DBSCAN_start, MinPts_DBSCAN);
     
     
-    %     ind_zeros = clusteringSolutionDBSCAN==0;
-    %     check_NaNs = isequal(ind_zeros, ind_NaN);
+    % ind_zeros = clusteringSolutionDBSCAN==0;
+    % check_NaNs = isequal(ind_zeros, ind_NaN);
     %
-    %     if ~isempty(ind_NaN) % when the vector of data with NaN
-    %         is given to the cluster method
-    %         clusteringSolutionDBSCAN(ind_NaN) = NaN;
-    %     end
+    % if ~isempty(ind_NaN) % when the vector of data with NaN
+    %   is given to the cluster method
+    %   clusteringSolutionDBSCAN(ind_NaN) = NaN;
+    % end
+    
     if plotClustering==1
-        [centroids, n_cluster_values, dimension] = getClusterCentroids(feat_data_norm_no_NaN, ...
+        [centroids, n_cluster_values, dimension] = getClusterCentroids(data2cluster, ...
             clusteringSolutionDBSCAN);
         
         distances = [];
         ncluster = numel(n_cluster_values);
         figure(67)
-        plotClusterSolution(feat_data_norm_no_NaN, ...
+        plotClusterSolution(data2cluster, ...
             clusteringSolutionDBSCAN, centroids, ...
             distances, n_cluster_values, ncluster, ...
-            dimension, 1, feat_names, time_min, [], [])
+            dimension, 1, feat_names, time_min, [], []);
+        title(['DBSCAN, (epsilon = ' num2str(epsilon_DBSCAN_start) ...
+            ', MinPts = ' num2str(MinPts_DBSCAN) ')'])
         
     else
-        [centroids, n_cluster_values, dimension] = getClusterCentroids(feat_data_norm_no_NaN, ...
+        [centroids, n_cluster_values, dimension] = getClusterCentroids(data2cluster, ...
             clusteringSolutionDBSCAN);
     end
     
@@ -128,23 +151,7 @@ while stop
         stop = 0;
     end
     
-%     figure()
-%     PlotClusteringResultDBSCAN(feat_data_norm, clusteringSolutionDBSCANFinal,{'m','x'});
-%     title(['DBSCAN Clustering ($\epsilon$ = ' num2str(epsilon_DBSCAN_start) ...
-%         ' samples, MinPts = ' num2str(MinPts_DBSCAN) ')']);
-%     xlabel(feat_names(1))
-%     ylabel(feat_names(2))
-%     zlabel(feat_names(3))
-%     axis tight
-    
 end
-count_dbscan = [];
-stop = [];
-epsilon_DBSCAN_start = [];
-dbscan_name = [];
-clusteringSolutionDBSCAN = [];
-clusteringSolutionDBSCANFinal = [];
-centroids = [];
 
 
 end

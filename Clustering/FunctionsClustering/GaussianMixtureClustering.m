@@ -10,20 +10,20 @@ function [validity_indices_out, chosenClusteringSolution] = GaussianMixtureClust
 % Source: http://hameddaily.blogspot.com/2015/03/when-not-to-use-gaussian-mixtures-model.html
 
 
+SCtext = {'true', 'false'};
+
+
 % ncluster = 4; % number of clusters
 Sigma = {'diagonal', 'full'};
 nSigma = numel(Sigma);
 SharedCovariance = {true, false};
-
-SCtext = {'true', 'false'};
-
 nSC = numel(SharedCovariance);
 options = statset('MaxIter', 4000); % Increase number of EM iterations
 
 if plotFigures
     d = 50;
-    x1 = linspace(min(data2cluster(:,1)) - 2, max(data2cluster(:,1)) + 2, d);
-    x2 = linspace(min(data2cluster(:,2)) - 2, max(data2cluster(:,2)) + 2, d);
+    x1 = linspace(min(data2cluster(:,1)) - 2,max(data2cluster(:,1)) + 2,d);
+    x2 = linspace(min(data2cluster(:,2)) - 2,max(data2cluster(:,2)) + 2,d);
     [x1grid, x2grid] = meshgrid(x1, x2);
     
     X0 = [x1grid(:) x2grid(:)];
@@ -35,33 +35,40 @@ if plotFigures
     c = 1;
 end
 
-OD_mat = zeros(2,2);
-ICV_mat = zeros(2,2);
-C_mat = zeros(2,2);
-DI_mat = zeros(2,2);
-CS_mat = zeros(2,2);
-nclusters_mat = zeros(2,2);
+OD_mat = zeros(nSigma,nSC);
+ICV_mat = OD_mat;
+C_mat = OD_mat;
+DI_mat = OD_mat;
+CS_mat = OD_mat;
+nclusters_mat = OD_mat;
+
 options_names = cell(2,2);
-nsamples_Larger_cluster_mat = cell(2,2);
+nsamples_Larger_cluster_mat = options_names;
 
 save_h1 = cell(2,2);
 distances_matrix = pdist2(data2cluster,data2cluster);
 nn_matrix = nearest_neighbours(distances_matrix);
 
-save_clusters = zeros(nSigma,nSC,length(data2cluster));
-save_gmfit = cell(nSigma,nSC);
+save_cluster_solutions = zeros(nSigma, nSC, length(data2cluster));
+save_gmfit = cell(nSigma, nSC);
 
 for ii = 1:nSigma
     for jj = 1:nSC
         
         
+        % contrarily to the clustering solutions in the preictal study, I
+        % don't know how many clusters would be correct in the the RR
+        % interval identification
+        % see getGMMClustering
         options_names(ii,jj) = {['CovType ',Sigma{ii}, ' SharedCov ',SCtext{jj}]};
         stop = 0;
         try
             while stop==0
-                gmfit = fitgmdist(data2cluster,ncluster,'CovType',Sigma{ii},...
-                    'SharedCov',SharedCovariance{jj},'Options',options,'RegularizationValue',0.01);
-                clusterSolution = cluster(gmfit,data2cluster);
+                gmfit = fitgmdist(data2cluster, ncluster, 'CovType', ...
+                    Sigma{ii}, 'SharedCov', SharedCovariance{jj}, ...
+                    'Options', options, 'RegularizationValue',0.01);
+                
+                clusterSolution = cluster(gmfit, data2cluster);
                 nClusterSolution = unique(clusterSolution);
                 if size(gmfit.mu,1)>numel(nClusterSolution)
                     ncluster = numel(nClusterSolution);
@@ -69,14 +76,12 @@ for ii = 1:nSigma
                     stop = 1;
                 end
             end
-            
-            
         catch
             continue
         end
         
         save_gmfit(ii,jj) = {gmfit};
-        save_clusters(ii,jj,:) = clusterSolution;
+        save_cluster_solutions(ii,jj,:) = clusterSolution;
         cluster_mean = unique(round(gmfit.mu*1e4)/1e4,'rows')
         
         nclusters_mat(ii,jj,:) = size(cluster_mean,1);
@@ -90,7 +95,7 @@ for ii = 1:nSigma
         connectedness = connectivity(nn_matrix,clusterSolution,L,ncluster);
         C_mat(ii,jj) = connectedness;
         
-        DI_mat(ii,jj) = dunns(distances_matrix,clusterSolution,ncluster);
+        DI_mat(ii,jj) = dunns(clusterSolution, distances_matrix, ncluster);
  
         CS_mat(ii,jj) = clusterSeparation(data2cluster,clusterSolution,{cluster_mean});
 
@@ -179,7 +184,7 @@ validity_indices = table(options_names, OD_mat, ICV_mat, C_mat, ...
     DI_mat, CS_mat, nsamples_Larger_cluster_mat, nclusters_mat)
 
 validity_indices_out = validity_indices(I,:)
-chosenClusteringSolution = squeeze(save_clusters(ind_sigma,ind_sharedCov,:));
+chosenClusteringSolution = squeeze(save_cluster_solutions(ind_sigma,ind_sharedCov,:));
 
 
 end

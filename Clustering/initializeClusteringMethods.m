@@ -3,27 +3,27 @@ function [clustering_methods, ind_method_dbscan, n_clustering_methods, ...
 
 % INDICATE THE CLUSTERING METHODS; 
 
-% A DEFINIR: *************************************************************
-ind_pat = 7;
+% TO DEFINE: **************************************************************
+
 k_cluster2test_vec = 2:k_cluster2test_vec;
 n_k_cluster2test = numel(k_cluster2test_vec);
 n_epsilon4dbscan = 4;
 
 
-% K-means clustering:
+% K-means clustering (KM):
 k_means_clustering = cellstr(strcat(repmat('kmeans_k',n_k_cluster2test,1), ...
     num2str(k_cluster2test_vec')));
 
-% Agglomerative hierarchical clustering:
+% Agglomerative hierarchical clustering (AH):
 agglo_hier_clustering = cellstr(strcat(repmat('agglo_hier_k',n_k_cluster2test,1), ...
     num2str(k_cluster2test_vec')));
 
-% DBSCAN
+% Density-based spatial clustering of applications with noise (DBSCAN):
 % 4 different epsilons/distances are tested in dbscan
 dbscan_clustering = cellstr(strcat(repmat('dbscan_d',n_epsilon4dbscan,1), ...
     num2str((1:n_epsilon4dbscan)')));
 
-% Gaussian mixture model clustering:
+% Gaussian mixture model clustering (GMM):
 gmm_clustering = cellstr(strcat(repmat('gmm_k',n_k_cluster2test,1), ...
     num2str(k_cluster2test_vec')));
 

@@ -2,18 +2,19 @@ function [] = clustering_by_seizure(feat_names2analyse, feat_comb, ...
     patients_name, seizure_names, clustering_folder_path, ...
     features_folder_path)
 
-
+% Perform clustering on feature combination
 
 % Inputs:
 % - feat_names2analyse (cell): names of the features to analyse
 % - feat_comb (double): number of features to combine (e.g., 3-by-3 or 2-by-2)
-% - patients_name (cell): patients index name 
+% - patients_name (cell): patients index name
 % - seizure_names (cell): seizures index name
 % - clustering_folder_path (char): folder to save the clustering results
 % - features_folder_path (char): main folder path
 
 
 plotFeatComb = 0;
+plotClustering = 0;
 
 % indexes of features for each feaure combination:
 feat_combs = nchoosek(1:numel(feat_names2analyse),feat_comb);
@@ -25,7 +26,7 @@ n_comb = size(feat_combs,1);
 % *************************************************************************
 % get the clustering methods:
 % - DBSCAN
-% - K-means
+% - KM
 % - GMM
 % - AH
 
@@ -52,11 +53,11 @@ end
 % *************************************************************************
 
 
-plotClustering = 0;
+
 opts_KMEANS = statset('Display','final');
 
 % to run in paralel just replace 'for' by 'parfor' bellow:
-for pp = 1:numel(patients_name)
+parfor pp = 1:numel(patients_name)
     
     
     % for loading feature original data for each seizure:
@@ -194,7 +195,6 @@ for pp = 1:numel(patients_name)
                 % close all
             end
             
-            % perform clustering on feature combination
             
             
             %% Run K-means clustering algorithm for 2 clusters
@@ -218,6 +218,7 @@ for pp = 1:numel(patients_name)
                         plotClusterSolution(feat_data_norm_no_NaN, clusteringSolutionKmeans, ...
                             centroids, distances, n_cluster_values, ncluster, ...
                             dimension, 1, feat_names, time_min, [], []);
+                        title(['KM, k = ' num2str(ncluster)])
                     end
                     
                     % save clustering solutions and centroids *****************
@@ -245,7 +246,6 @@ for pp = 1:numel(patients_name)
                 end
                 
             end
-            kmeans_name = [];
             centroids = [];
             clusteringSolutionKmeans = [];
             clusteringSolutionKmeansFinal = [];
@@ -279,7 +279,8 @@ for pp = 1:numel(patients_name)
                         distances = [];
                         plotClusterSolution(feat_data_norm, clusteringSolutionAggloFinal, ...
                             centroids, distances, n_cluster_values, ncluster, ...
-                            dimension, 1, feat_names)
+                            dimension, 1, feat_names, time_min, [], []);
+                        title(['AH, k = ' num2str(ncluster)])
                     else
                         centroids = getClusterCentroids(feat_data_norm, clusteringSolutionAggloFinal);
                     end
@@ -300,7 +301,6 @@ for pp = 1:numel(patients_name)
                 clusteringSolutionAggloFinal = [];
                 centroids = [];
             end
-            agglo_name = [];
             
             
             % [H,T] = dendrogram(Z,'colorthreshold',1.2,'orientation','right');
@@ -308,159 +308,34 @@ for pp = 1:numel(patients_name)
             %% Run DBSCAN Clustering Algorithm on the features intervals
             dbscan_name = 'dbscan_d';
             if any(~cellfun(@isempty,strfind(clustering_methods,dbscan_name)))
+                
                 [centroids, clusteringSolutionDBSCANFinal] = getDBSCANClustering(dimension, ...
-                    feat_data_norm, feat_names, time_min, plotClustering, n_epsilon4dbscan);
+                    feat_data_norm_no_NaN, ind_NaN, feat_names, time_min, plotClustering, ...
+                    n_epsilon4dbscan);
                 
                 for tt = count_cluster_methods:count_cluster_methods+n_epsilon4dbscan-1
                     temp_prototypes{tt}(ff) = centroids(tt-count_cluster_methods+1);
                     temp_solutions{tt}(ff,:) = clusteringSolutionDBSCANFinal{tt-count_cluster_methods+1};
                 end
                 count_cluster_methods = count_cluster_methods+n_epsilon4dbscan;
+                
             end
-            
             
             
             %% Run gaussian mixture model clustering
             
             gmm_name = 'gmm_k';
-            if any(~cellfun(@isempty,strfind(clustering_methods,gmm_name)))
+            if any(~cellfun(@isempty,strfind(clustering_methods, gmm_name)))
                 
-                
-                plotFigure = 0;
-                if plotFigure
-                    close all
-                    figure()
-                    count = 0;
-                    SCtext = {'true','false'};
-                end
-                
-                Sigma = {'diagonal','full'};
-                nSigma = numel(Sigma);
-                SharedCovariance = {true,false};
-                
-                nSC = numel(SharedCovariance);
-                options = statset('MaxIter',4000); % Increase number of EM iterations
-                
-                distances_matrix = pdist2(feat_data_norm_no_NaN,feat_data_norm_no_NaN);
-                % nn_matrix = nearest_neighbours(distances_matrix);
-                save_cluster_solutions = zeros(nSigma,nSC,length(feat_data_norm_no_NaN));
-                
-                DI_mat = zeros(2,2);
-                OD_mat = zeros(2,2);
-                % ICV_mat = zeros(2,2);
-                % C_mat = zeros(2,2);
-                % CS_mat = zeros(2,2);
-                
-                for ii = 1:nSigma
-                    for jj = 1:nSC
-                        
-                        % before performing clustering to force it to
-                        % always use the same 'random' values and return
-                        % the same result each time. It doesn't make it
-                        % deterministic, but it makes it repeatable at
-                        % least.
-                        rng 'default'
-                        
-                        % we want solutions with two clusters: input of 2
-                        gmfit = fitgmdist(feat_data_norm_no_NaN, 2, ...
-                            'CovType', Sigma{ii}, 'SharedCov', ...
-                            SharedCovariance{jj}, 'Options', options, ...
-                            'Regularize',1e-5);
-                        % Use 'Regularize' to add a very small positive
-                        % number to the diagonal of every covariance matrix.
-                        
-                        clusterSolution = cluster(gmfit,feat_data_norm_no_NaN);
-                        save_cluster_solutions(ii,jj,:) = clusterSolution;
-                        % cluster_mean = unique(round(gmfit.mu*1e4)/1e4,'rows');
-                        
-                        % nsamples_Larger_cluster_mat(ii,jj) = {max(histc(clusterSolution,nClusterSolution))/numel(clusterSolution)};
-                        
-                        [~, n_cluster_values, dimension] = ...
-                            getClusterCentroids(feat_data_norm_no_NaN, clusterSolution);
-                        n_clusters = numel(n_cluster_values);
-                        % Validity indices based on cluster labels
-                        
-                        DI_mat(ii,jj) = dunns(distances_matrix,clusterSolution, n_clusters);
-                        
-                        [overallDeviation,~] = compactness(feat_data_norm_no_NaN,clusterSolution);
-                        OD_mat(ii,jj) = overallDeviation;
-                        % ICV_mat(ii,jj) = intraclusterVariance;
-                        % L = 10;
-                        % connectedness = connectivity(nn_matrix,clusterSolution,L,ncluster);
-                        % C_mat(ii,jj) = connectedness;
-                        % CS_mat(ii,jj) = clusterSeparation(feat_data_norm_no_NaN,clusterSolution,{cluster_mean});
-                        
-                        if plotFigure
-                            count = count+1;
-                            subplot(2,2,count)
-                            plotClusterSolution(feat_data_norm_no_NaN, clusterSolution, ...
-                                centroids, [], n_cluster_values, n_clusters, ...
-                                dimension, 1, feat_names, [], [], [])
-                            title(sprintf('SigmaType = %s, SharedCov = %s',Sigma{ii},SCtext{jj}))
-                        end
-                    end
-                end
-                nSigma = [];
-                nSC = [];
-                gmfit = [];
-                Sigma = [];
-                SharedCovariance = [];
-                options = [];
-                distances_matrix = [];
-                n_cluster_values = [];
-                
-                [ind_row_best_solution, ind_col_best_solution] = find(DI_mat>0.15);
-                DI_mat = [];
-                if ~isempty(ind_row_best_solution)
-                    if numel(ind_row_best_solution)>1
-                        OD_mat_best = zeros(numel(ind_row_best_solution),1);
-                        for tt = 1:numel(ind_row_best_solution)
-                            OD_mat_best(tt) = OD_mat(ind_row_best_solution(tt), ind_col_best_solution(tt));
-                        end
-                        
-                        ind_best_final = find(OD_mat_best==max(OD_mat_best));
-                        if numel(ind_best_final)==1
-                            ind_row_best_solution = ind_row_best_solution(ind_best_final);
-                            ind_col_best_solution = ind_col_best_solution(ind_best_final);
-                        else
-                            ind_row_best_solution = ind_row_best_solution(ind_best_final(1));
-                            ind_col_best_solution = ind_col_best_solution(ind_best_final(1));
-                        end
-                    end
-                    ind_best_final = [];
-                else
-                    ind_row_best_solution = 1;
-                    ind_col_best_solution = 2;
-                end
-                
-                clusteringSolutionGMM = squeeze(save_cluster_solutions(ind_row_best_solution, ...
-                    ind_col_best_solution, :));
-                
-                ind_row_best_solution = [];
-                ind_col_best_solution = [];
-                save_cluster_solutions = [];
-                
-                [centroids, ~, ~] = getClusterCentroids(feat_data_norm_no_NaN, ...
-                    clusteringSolutionGMM);
-                
-                % add the cluster values to the proper non NaN positions:
-                clusteringSolutionGMMFinal = NaN(size(ind_NaN));
-                clusteringSolutionGMMFinal(~ind_NaN) = clusteringSolutionGMM;
-                
+                [centroids, clusteringSolutionGMMFinal] = getGMMClustering( ...
+                    feat_data_norm_no_NaN, ind_NaN, plotClustering, feat_names);
                 temp_solutions{count_cluster_methods}(ff,:) = clusteringSolutionGMMFinal;
                 temp_prototypes{count_cluster_methods}(ff) = {centroids};
-                count_cluster_methods = count_cluster_methods+1;
-                
-                clusteringSolutionGMM = [];
-                clusteringSolutionGMMFinal = [];
-                centroids = [];
             end
-            gmm_name = [];
             
-
         end
         
-
+        
         %% save results
         save_clustering_data.data2cluster = data2cluster;
         
@@ -473,7 +348,7 @@ for pp = 1:numel(patients_name)
         end
         
         parsave(seizFolderPath, {save_clustering_data}, 'save_clustering_data')
-
+        
     end
     
     
