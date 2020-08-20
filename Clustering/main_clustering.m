@@ -62,6 +62,15 @@ if exist(folder2savePath, 'dir')
     addpath(genpath(folder2savePath));
 end
 
+% add the clustering functions to the path
+functionsFolder = 'FunctionsClusterSolutionEvaluation';
+folder2savePath = fullfile(cd, functionsFolder);
+if exist(folder2savePath, 'dir')
+    % Add that folder plus all subfolders to the path.
+    addpath(genpath(folder2savePath));
+end
+
+
 functionsFolder = 'utils';
 folder2savePath = fullfile(outer_folder_path, functionsFolder);
 if exist(folder2savePath, 'dir')
