@@ -2,6 +2,7 @@
 Heart Rate Variability Analysis for the Identification of the Preictal Interval in Patients with Drug-resistant Epilepsy
 
 __CLUSTERING:__
+
 Code to perform clustering on the three-by-three combination of HRV features, using the following clustering methods:
 
 - K-means (KM)
@@ -16,6 +17,7 @@ __How to run the code:__
 
 
 __CLUSTER SOLUTION EVALUATION:__
+
 Code to perform cluster solution evaluation of the solutions obtained after clustering, using the following methods:
 
 (1) Validity indices based on cluster labels
