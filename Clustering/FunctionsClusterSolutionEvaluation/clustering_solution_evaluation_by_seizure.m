@@ -33,7 +33,7 @@ methods_vec = [1 4 7:10 11];
 n_clustering_methods = numel(methods_vec)
 
 
-for pp = 1:numel(pats_name)
+parfor pp = 1:numel(pats_name)
     
     disp(['Patient' pats_name{pp}])
     
@@ -102,11 +102,11 @@ for pp = 1:numel(pats_name)
             feat_data_norm_no_nan = feat_data_norm(~ind_NaN,:);
             
             % compute distances between feature values:
-            distances_matrix_feat_data = pdist2(feat_data_norm_no_nan,feat_data_norm_no_nan);
-            [nn_matrix,~] = nearest_neighbours(distances_matrix_feat_data);
+            distances_matrix = pdist2(feat_data_norm_no_nan, feat_data_norm_no_nan);
+            [nn_matrix, ~] = nearest_neighbours(distances_matrix);
             
             
-            for vv = 5:n_clustering_methods
+            for vv = 1:n_clustering_methods
                 % disp(['Clustering Method: ' clustering_methods{vv}])
                 
                 
@@ -130,7 +130,7 @@ for pp = 1:numel(pats_name)
                 % AFTER: size(centroids,1)==2 only for clustering solutions
                 % with two clusters
                 
-                if 1 %~any(n_cluster_values==0) && size(centroids,1)>1 % there were no DBSCAN solutions (????)
+                if 1 %~any(n_cluster_values==0) && size(centroids,1)>1
                     % if the clustering solutions had zeros or didn't have
                     % more than one cluster, no analysis was performed
                     
@@ -174,7 +174,7 @@ for pp = 1:numel(pats_name)
                     
                     %% Dunn Index
                     % tic
-                    DI = dunns(clusteringSolutionNoNaN, distances_matrix_feat_data, []);
+                    DI = dunns(clusteringSolutionNoNaN, distances_matrix, []);
                     results_feat_eval.DI.(clustering_methods{methods_vec(vv)})(ff) = DI;
                     % if results_feat_eval.DI.(clustering_methods{vv})(ff)>=0.13
                     %     pause
@@ -229,7 +229,7 @@ for pp = 1:numel(pats_name)
                 end
             end
             
-            distances_matrix_feat_data = [];
+            distances_matrix = [];
             feat_data_norm = [];
             feat_data_norm_no_nan = [];
             seiz_data_feat_comb = [];
