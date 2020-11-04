@@ -39,8 +39,8 @@ for pp = 1:length(pats_name)
     for ss = 1:numel(seiz_folders)
         count_seizures = count_seizures+1;
         
-        % get information regarding the computational time required for to
-        % obtained each feature:
+        % get information regarding the computational time required to
+        % obtain each feature:
         comp_time = load(fullfile(seiz_folders(ss).folder, ...
             seiz_folders(ss).name, [file_name '_seizure' num2str(ss) '_comp_time']));
         comp = fieldnames(comp_time);

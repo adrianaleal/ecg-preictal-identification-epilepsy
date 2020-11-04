@@ -13,10 +13,10 @@ feature_folder_path = fullfile(cd, 'ResultsFeatureExtraction');
 % load variable patients_info_final:
 load('patients_info_preictal_study_240min_before_seiz')
 
-% open folder containing the feature dataset:
-dataset_folder_path = fullfile(cd,'FeatureDataset');
-if ~exist(dataset_folder_path, 'dir')
-    mkdir(dataset_folder_path)
+% open folder containing the concatenated feature dataset:
+concat_feat_folder_path = fullfile(cd,'FeatureDataset');
+if ~exist(concat_feat_folder_path, 'dir')
+    mkdir(concat_feat_folder_path)
 end
 
 % add utils folder to the path:
@@ -33,20 +33,20 @@ variables2load = {'feat_names2analyse', 'n_wins', 'n_seizures', ...
     'compTimeTable', 'seizure_struct'}';
 
 if computeFromScratch==1
-    loadFeatureDataset(dataset_folder_path, feature_folder_path, ...
+    loadFeatureDataset(concat_feat_folder_path, feature_folder_path, ...
         variables2load, patients_info_final)
 end
-load(fullfile(dataset_folder_path, 'structureData.mat'))
+load(fullfile(concat_feat_folder_path, 'structureData.mat'))
 for ii = 1:numel(variables2load)
     eval([variables2load{ii} ' = structureData.' variables2load{ii} ';'])
 end
 clear structureData
 
-load(fullfile(dataset_folder_path, 'feature_dataset_240min_before_seizure_3D.mat'), ...
+load(fullfile(concat_feat_folder_path, 'feature_dataset_240min_before_seizure_3D.mat'), ...
     'feature_dataset_240min_before_seizure_3D')
-load(fullfile(dataset_folder_path, 'feature_dataset_240min_before_seizure_all_feat.mat'), ...
+load(fullfile(concat_feat_folder_path, 'feature_dataset_240min_before_seizure_all_feat.mat'), ...
     'feature_dataset_240min_before_seizure_all_feat')
-load(fullfile(dataset_folder_path, 'feature_dataset_240min_before_seizure.mat'), ...
+load(fullfile(concat_feat_folder_path, 'feature_dataset_240min_before_seizure.mat'), ...
     'feature_dataset_240min_before_seizure')
 
 seizure_names = {seizure_struct(:).seizure_name}';
@@ -60,4 +60,13 @@ pats_name = unique(seizure_names_separated(:,2),'stable');
 n_pat = numel(pats_name);
 
 
+% PLOT FEATURES OVER TIME *************************************************
 
+
+% choose how many features you want to observe in plot: 
+% check the features' names in feat_names2analyse
+feat_names = {'RRMean', 'LF_POWER', 'SampEn'}
+
+% define the patient and seizure inside the function
+plotSignal2Features(feat_names, patients_name, ...
+    seizure_names_separated(:,2), feature_folder_path, patients_info_final)

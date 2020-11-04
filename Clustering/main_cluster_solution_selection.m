@@ -59,7 +59,7 @@ clustering_folder_path = fullfile(cd, 'ResultsClustering', ...
 
 
 % add the clustering evaluation functions to the path
-functionsFolder = 'FunctionsClusterSolutionEvaluation';
+functionsFolder = 'FunctionsClusterSolutionSelection';
 folder2savePath = fullfile(cd, functionsFolder);
 if exist(folder2savePath, 'dir')
     % Add that folder plus all subfolders to the path.
