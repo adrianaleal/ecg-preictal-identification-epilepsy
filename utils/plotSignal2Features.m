@@ -7,31 +7,41 @@ function [] = plotSignal2Features(feat_names, patients_name, ...
 % with the RR interval series and the features obtained
 
 % Inputs:
-% - feat_names2analyse (cell): names of the features to analyse
-% - feat_comb (double): number of features to combine (e.g., 3-by-3 or 2-by-2)
+% - feat_names (cell): names of the features to analyse
 % - patients_name (cell): patients index name
 % - seizure_names (cell): seizures index name
 % - features_folder_path (char):
-
+% - patient_info (struct): structure containing information for each
+%   patient
 
 close all
-
-
 figureFolder2save = fullfile(cd, 'DataFiguresECG2Features');
 
-plotTimeMin = 1;
-% plotTimeMin = 0 --> plot original time vector in hours
-% plotTimeMin = 1 --> plot 0-240 time vector in min
+
+% CHECK THE FOLLOWING: ****************************************************
 
 plotNonOverlappedWindows = 0;
 plotSpecificWindows = 0;
 plotNormalizedFeatures = 1;
 
-vec_time_min = 0:40:240;
-vec_time_min_label = 240:-40:0;
+plotTimeMin = 1;
+plotTimeMinReverse = 1;
+% plotTimeMin = 0 --> plot original time vector in hours
+% plotTimeMin = 1 && plotTimeMinReverse = 0 --> plot 0-240 time vector in min
+% plotTimeMinReverse = 1 && plotTimeMinReverse = 1 --> plot 240-0 time vector in min
+
+% *************************************************************************
+
+if plotTimeMinReverse
+    vec_time_min = -240:40:0;
+    vec_time_min_label = 240:-40:0;
+else
+    vec_time_min = 0:40:240;
+    vec_time_min_label = 0:40:240;
+end
 
 
-for pp = 2%:numel(patients_name)
+for pp = 37%:numel(patients_name)
     
     
     file_name = patients_name{pp}
@@ -46,7 +56,7 @@ for pp = 2%:numel(patients_name)
         fs = patient_info(pp).samp_rate;
     end
     
-    for ss = 1%:n_seizures_pat
+    for ss = 6%:n_seizures_pat
         
         disp(['Seizure ' num2str(ss)])
         
@@ -93,24 +103,30 @@ for pp = 2%:numel(patients_name)
         % between the recordings:
         gap_logical = save2FigurePlotECG.gap_logical;
         
+        duration_seiz_min = (time_recording(end)-time_recording(1))/60;
+        
         if plotNonOverlappedWindows
             % get the nonoverlapped windows used in noise detection:
             window_indexes_seiz = save2FigurePlotECG.window_indexes_seiz;
         end
         
-        if plotTimeMin
+        if plotTimeMin % plot 0-240 time vector in min
             time = ([0 cumsum(diff(time_recording))])/60;
+            time_features = linspace(0, time(end), numel(time_vec_original));
+            
             xlabel_name = 'Time (min)';
             
-            final_time_min = time(end);
-            time_features = (linspace(0,final_time_min, numel(time_vec_original)))';
-            % time = linspace(0,final_time_min, numel(time_recording));
+            if plotTimeMinReverse % plot 240-0 time vector in min
+                time = time-duration_seiz_min;
+                time_features = time_features-duration_seiz_min;
+            end
         else
             time = time_recording;
-            time_features = vertcat(hrv_features.time);
+            time_features = time_vec_original';
             xlabel_name = 'Time (hour)';
         end
         
+        time_gap = linspace(time(1),time(end), numel(gap_logical));
         
         figure(100)
         set(gcf,'units','normalized','outerposition',[0 0 1 1])
@@ -120,13 +136,12 @@ for pp = 2%:numel(patients_name)
         
         h1 = plot(time, sig_preprocess_seiz); hold on
         h2 = plot(time, clean_sig*(1/3)*max(sig_preprocess_seiz));
-        h3 = plot(time(QRSindxs_entire_sig_seiz), ...
-            sig_preprocess_seiz(QRSindxs_entire_sig_seiz),'*');
-        h10 = plot(linspace(time(1),time(end), numel(gap_logical)), ...
-            gap_logical*(2/3)*max(sig_preprocess_seiz));
+        h3 = plot(time(QRSindxs_entire_sig_seiz), sig_preprocess_seiz(QRSindxs_entire_sig_seiz),'*');
+        h10 = plot(time_gap, gap_logical*(2/3)*max(sig_preprocess_seiz));
         legend_vec_names = {'ECG signal preprocessed', 'Noise detection', ...
             'R peak detection', 'File gap detection'};
         legend_vec = [h1, h2, h3, h10];
+        
         
         if plotNonOverlappedWindows
             % plot the nonoverlapped windows used in noise detection:
@@ -137,7 +152,7 @@ for pp = 2%:numel(patients_name)
             legend_vec_names = [legend_vec_names, {'5 min windows'}];
         end
         
-        axis tight
+        axis tight, grid on
         legend(legend_vec, legend_vec_names)
         ylabel('mV')
         ylim([-21 max(sig_preprocess_seiz)])
@@ -154,33 +169,37 @@ for pp = 2%:numel(patients_name)
         for ll = 1:size(save2FigurePlotECG.RRI_240min)
             if plotTimeMin
                 
-                time_RR_hour = save2FigurePlotECG.time_Rpeaks_240min{ll}';
+                time_RR_hour = save2FigurePlotECG.time_Rpeaks_240min{ll};
                 init_hour = time_RR_hour(1)-save2FigurePlotECG.time_Rpeaks_240min{1}(1);
                 
-                time_RR_secs = [init_hour; init_hour+cumsum(diff(time_RR_hour))];
+                time_RR_secs = [init_hour init_hour+cumsum(diff(time_RR_hour))];
                 time_RR = time_RR_secs/60; % in min
-                time_RR_corrected_hour = save2FigurePlotECG.time_Rpeaks_240min_corrected{ll}';
-                time_RR_corrected_secs = [init_hour; init_hour+cumsum(diff(time_RR_corrected_hour))];
+                time_RR_corrected_hour = save2FigurePlotECG.time_Rpeaks_240min_corrected{ll};
+                time_RR_corrected_secs = [init_hour init_hour+cumsum(diff(time_RR_corrected_hour))];
                 time_RR_corrected = time_RR_corrected_secs/60;% in min
+                
+                if plotTimeMinReverse % plot 240-0 time vector in min
+                    time_RR = time_RR-duration_seiz_min;
+                    time_RR_corrected = time_RR_corrected-duration_seiz_min;
+                end
                 
                 h1 = plot(time_RR, save2FigurePlotECG.RRI_240min{ll}*1e3, 'b');
                 hold on
                 h2 = plot(time_RR_corrected, ...
                     save2FigurePlotECG.RRI_240min_corrected{ll}*1e3, '--r');
             else
-                plot(save2FigurePlotECG.time_Rpeaks_240min{ll}*1e3, ...
-                    save2FigurePlotECG.RRI_240min{ll}, 'b')
+                h1 = plot(save2FigurePlotECG.time_Rpeaks_240min{ll}, ...
+                    save2FigurePlotECG.RRI_240min{ll}*1e3, 'b');
                 hold on
-                plot(save2FigurePlotECG.time_Rpeaks_240min_corrected{ll}*1e3, ...
-                    save2FigurePlotECG.RRI_240min_corrected{ll}, '--r')
+                h2 = plot(save2FigurePlotECG.time_Rpeaks_240min_corrected{ll}, ...
+                    save2FigurePlotECG.RRI_240min_corrected{ll}*1e3, '--r');
             end
         end
         
         
-        axis tight
+        axis tight, grid minor
         ylabel('ms')
         if plotTimeMin
-            
             % if plot the lines identifying the 5-min windows from which
             % the features images were taken
             if plotSpecificWindows
@@ -189,12 +208,15 @@ for pp = 2%:numel(patients_name)
                 xline(win2(1), 'k--');
                 xline(win2(2), 'k--');
             end
-            legend([h1 h2], {'RR intervals', 'RR intervals corrected'})
+            
             set(gca,'XTick', vec_time_min)
             set(gca,'XTickLabel', num2cell(vec_time_min_label))
         end
         set(gca,'FontSize',14)
+        legend([h1 h2], {'RR intervals', 'RR intervals corrected'})
+        
         hold off
+        
         
         
         %% plot the features **********************************************
@@ -211,18 +233,18 @@ for pp = 2%:numel(patients_name)
         end
         feat_data2plot = feat_data;
         
-        if plotNormalizedFeatures 
+        if plotNormalizedFeatures
             feat_data_norm = (feat_data-min(feat_data))./(max(feat_data)-min(feat_data));
             feat_data2plot = feat_data_norm;
         end
         
-        time_data = repmat(time_features,1,numel(feat_names)); 
+        time_data = repmat(time_features',1,numel(feat_names));
         
         
-            
+        
         sp3 = subplot_tight(3,1,3, [0.06, 0.04]);
         plot(time_data, feat_data2plot)
-        axis tight
+        axis tight, grid minor
         legend(replaceFeatureNames(regexprep(feat_names,'_',' ')))
         if plotTimeMin
             set(gca,'XTick', vec_time_min)
