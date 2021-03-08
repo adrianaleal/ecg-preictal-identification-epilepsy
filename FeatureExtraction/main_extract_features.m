@@ -23,8 +23,6 @@ if load_window
     RRI_series_segment = RRI_series_segment_pat_8902_seiz_1_win_1940;
     time_RR_intervals = time_RRI_series_segment_pat_8902_seiz_1_win_1940;
 else
-    
-    
     % RR interval series located from 26 to 21 minutes before seizure onset
     load('RRI_series_segment_pat_8902_seiz_1_win_2569.mat')
     % corresponding irregularly-sampled time vector
