@@ -36,8 +36,6 @@ for ii = 1:numel(variables2load)
 end
 clear structureData
 
-load(fullfile(concat_feat_folder_path, 'feature_dataset_240min_before_seizure_3D.mat'), ...
-    'feature_dataset_240min_before_seizure_3D')
 load(fullfile(concat_feat_folder_path, 'feature_dataset_240min_before_seizure_all_feat.mat'), ...
     'feature_dataset_240min_before_seizure_all_feat')
 load(fullfile(concat_feat_folder_path, 'feature_dataset_240min_before_seizure.mat'), ...
@@ -50,8 +48,8 @@ seizure_names = seizure_names(index_nonempty);
 % get the patients' names to initialize the structure to save the results
 C = cellfun(@(x)strsplit(x, '_' ), seizure_names, 'UniformOutput', false);
 seizure_names_separated = vertcat(C{:});
-pats_name = unique(seizure_names_separated(:,2),'stable');
-n_pat = numel(pats_name);
+patients_name = unique(seizure_names_separated(:,2),'stable');
+n_pat = numel(patients_name);
 
 
 % PLOT FEATURES OVER TIME *************************************************

@@ -41,7 +41,7 @@ else
 end
 
 
-for pp = 37%:numel(patients_name)
+for pp = 1:numel(patients_name)
     
     
     file_name = patients_name{pp}
@@ -56,7 +56,7 @@ for pp = 37%:numel(patients_name)
         fs = patient_info(pp).samp_rate;
     end
     
-    for ss = 6%:n_seizures_pat
+    for ss = 1:n_seizures_pat
         
         disp(['Seizure ' num2str(ss)])
         
