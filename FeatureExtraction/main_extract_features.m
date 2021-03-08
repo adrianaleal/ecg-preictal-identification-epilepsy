@@ -8,9 +8,9 @@ fclose all; clear; close all; clc;
 % there is no need for the instantaneous heart rate, only inter-beat RR
 % intervals
 
-%% Load examples of RR interval series (that were used in Supplementary
-% Material in Figures S5, S6 and S7 and that correspond to the first
-% seizure of patient 2).
+%% Load examples of RR interval series 
+% (that were used in Supplementary Material in Figures S5, S6 and S7 and 
+% that correspond to the first seizure of patient 2).
 
 load_window = 0;
 
