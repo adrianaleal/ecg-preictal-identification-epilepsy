@@ -6,7 +6,7 @@ __How to run the code:__
 Run main_extract_features.m script. This is an example code to run feature extraction using example data from two 5-min RR interval series (corresponding to the ones depicted in Figures S5, S6 and S7 in Supplementary Material). 
 
 
-Functions to included in folder HRVFeatures to run main_extract_features.m:
+Functions included in folder HRVFeatures to run main_extract_features.m:
 		
 	- freqband_power.m
 	- frequency_features.m
