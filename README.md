@@ -3,9 +3,6 @@
 __Code to reproduce results reported in our paper published as:__
 
 
-Abstract:
-
-
 
 (1) For feature extraction run main_extract_features.m script and read the corresponding description.
 
