@@ -3,36 +3,34 @@ Heart Rate Variability Analysis for the Identification of the Preictal Interval 
 
 __CLUSTERING:__
 
-Code to perform clustering on the three-by-three combination of HRV features, using the following clustering methods:
+Code to perform clustering on the three-by-three combination of HRV features.
 
+
+__How to run the code:__
+
+Run main_clustering.m script. This is an example code to run clustering on the HRV features extracted for a total of four seizures from patient 21902. The chosen feature combinations (see variable feat_comb_seizures) are the ones depited in Figure 2 on the article.
+
+The following clustering methods were used: 
 - K-means (KM)
 - Agglomerative hierarchical clustering (AH)
-- Density-based spatial clustering of applications with noise (DBSCAN)
+- Density-based spatial clustering of applications with noise (DBSCAN). The script was developed by Yarpiz (2021). DBSCAN Clustering Algorithm (https://www.mathworks.com/matlabcentral/fileexchange/52905-dbscan-clustering-algorithm), MATLAB Central File Exchange. Retrieved March 9, 2021.
 - Gaussian mixture model clustering (GMM)
 
 
-__How to run the code:__
-
-1 - Run file main_clustering.m after defining the number of features to combine (in variable feat_comb).
-
-
-__CLUSTER SOLUTION EVALUATION:__
-
-Code to perform cluster solution evaluation of the solutions obtained after clustering, using the following methods:
+The following cluster solution evaluation methods were used:
 
 (1) Validity indices based on cluster labels
-    - Dunn's index (DI)
-    - Connectivity (C)
-    - Silhouette index (SI)
+    - Dunn's index (DI) --> dunns.m
 
-(2) Validity indices based on cluster prototypes
-    - Cluster separation (CS)
-    - Intra cluster variance (ICV)
-    - Overall cluster deviation (OD)
+(2) Validity indices based on cluster prototypes 
+    - Intra cluster variance (ICV) --> compactness.m
+    - Overall cluster deviation (OD) --> compactness.m
+
+The script numSuplots.m is used to automatically compute the number of subplots (corresponding to the number of seizures) for each patient. The code was developed by Rob Campbell (2021). numSubplots - neatly arrange subplots (https://www.mathworks.com/matlabcentral/fileexchange/26310-numsubplots-neatly-arrange-subplots), MATLAB Central File Exchange. Retrieved March 9, 2021.
 
 
-__How to run the code:__
+Matlab toolboxes required:
 
-1 - Run file main_cluster_evaluation.m after performing clustering and also upon the definition of the number of features to combine (in variable feat_comb).
-
+- Signal Processing
+- Image Processing
 

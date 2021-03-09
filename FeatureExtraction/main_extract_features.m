@@ -10,7 +10,7 @@ fclose all; clear; close all; clc;
 
 %% Load examples of RR interval series 
 % (that were used in Supplementary Material in Figures S5, S6 and S7 and 
-% that correspond to the first seizure of patient 2).
+% that correspond to the first seizure of patient 8902).
 
 load_window = 0;
 
@@ -164,6 +164,18 @@ if ~isempty(interp_RRI_series_segment)
         plotFigure, attractorPSR);
     
 end
+
+
+%% plot Figure S8 in Supplementary Material 
+
+% choose how many features you want to observe in plot: 
+% check the features' names in feat_names2analyse
+feat_names = {'RRMean', 'LF_POWER', 'SampEn'}
+patient_name = '8902';
+plotSignal2Features(feat_names, patient_name)
+
+
+
 
 
 
