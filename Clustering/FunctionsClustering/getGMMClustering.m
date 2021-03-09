@@ -1,33 +1,28 @@
-function [centroids, clusteringSolutionGMMFinal] = getGMMClustering( ...
-    data2cluster, ind_NaN, plotFigure, feat_names)
-
-% When not to use Gaussian Mixture Model (EM clustering):
-% - Non-Gaussian dataset: as it is clear from the formulation, GMM assumes 
-% an underlying Gaussian generative distribution. However, many practical 
-% datasets do not satisfy this assumption. 
-% - Uneven cluster sizes. When clusters do not have even sizes there is a 
-% high chance that small cluster gets dominated by the large one. 
-% Source: http://hameddaily.blogspot.com/2015/03/when-not-to-use-gaussian-mixtures-model.html
-
-
+function clusteringSolutionGMM = getGMMClustering(data2cluster, ...
+    ncluster, plotFigure)
 
 % Inputs:
 % - data2cluster (double): matrix whose columns contain information for
 %                          each feature
-% - ind_NaN (logical): indexes of the NaN values across the features
 % - plotFigure (double): flag to plot the clustering result
-% - feat_names (cell): cell array containing the feature names 
 
 
 % Outputs:
-% - centroids (double)
-% - clusteringSolutionGMMFinal (double)
+% - clusteringSolutionGMM (double)
 
+% NOTES:
+% When not to use Gaussian Mixture Model (EM clustering):
+% - Non-Gaussian dataset: as it is clear from the formulation, GMM assumes
+% an underlying Gaussian generative distribution. However, many practical
+% datasets do not satisfy this assumption.
+% - Uneven cluster sizes. When clusters do not have even sizes there is a
+% high chance that small cluster gets dominated by the large one.
+% Source: http://hameddaily.blogspot.com/2015/03/when-not-to-use-gaussian-mixtures-model.html
 
+%%
 
 if plotFigure
-    close all
-    figure()
+    figure(12)
     count = 0;
     SCtext = {'true', 'false'};
 end
@@ -45,12 +40,6 @@ save_cluster_solutions = zeros(nSigma, nSC, length(data2cluster));
 
 OD_mat = zeros(nSigma,nSC);
 DI_mat = OD_mat;
-% ICV_mat = OD_mat;
-% C_mat = OD_mat;
-% CS_mat = OD_mat;
-% nclusters_mat = OD_mat;
-
-
 
 for ii = 1:nSigma
     for jj = 1:nSC
@@ -63,7 +52,7 @@ for ii = 1:nSigma
         rng 'default'
         
         % we want solutions with two clusters: input of 2
-        gmfit = fitgmdist(data2cluster, 2, 'CovType', Sigma{ii}, ...
+        gmfit = fitgmdist(data2cluster, ncluster, 'CovType', Sigma{ii}, ...
             'SharedCov', SharedCovariance{jj}, 'Options', options, ...
             'RegularizationValue', 1e-5);
         % Use 'Regularize' to add a very small positive
@@ -80,24 +69,20 @@ for ii = 1:nSigma
         n_clusters = numel(n_cluster_values);
         
         % Validity indices based on cluster labels
-        DI_mat(ii,jj) = dunns(clusterSolution, distances_matrix, n_clusters);
-        % L = 10;
-        % connectedness = connectivity(clusterSolution, nn_matrix, L, ncluster);
-        % C_mat(ii,jj) = connectedness;
+        DI_mat(ii,jj) = dunns(clusterSolution, n_clusters, distances_matrix);
         
         % Validity indices based on cluster prototypes
-        [overallDeviation,~] = compactness(data2cluster, ...
-            clusterSolution, n_clusters);
+        [overallDeviation,~] = compactness( ...
+            clusterSolution, n_clusters, data2cluster);
         OD_mat(ii,jj) = overallDeviation;
-        % ICV_mat(ii,jj) = intraclusterVariance;
-        % CS_mat(ii,jj) = clusterSeparation(data2cluster, clusterSolution, {cluster_mean});
         
         if plotFigure
+            figure(12)
             count = count+1;
             subplot(2,2,count)
+            distances = [];
             plotClusterSolution(data2cluster, clusterSolution, ...
-                centroids, [], n_cluster_values, n_clusters, ...
-                dimension, 1, feat_names, [], [], []);
+                centroids, distances, dimension, 1, [], [], [], []);
             title(sprintf('SigmaType = %s, SharedCov = %s', Sigma{ii}, ...
                 SCtext{jj}))
         end
@@ -107,7 +92,7 @@ end
 
 % Select the best solution among the four possible solutions
 [ind_row_best_solution, ind_col_best_solution] = find(DI_mat>0.15);
-DI_mat = [];
+
 if ~isempty(ind_row_best_solution)
     if numel(ind_row_best_solution)>1
         OD_mat_best = zeros(numel(ind_row_best_solution),1);
@@ -132,16 +117,6 @@ end
 
 clusteringSolutionGMM = squeeze(save_cluster_solutions(ind_row_best_solution, ...
     ind_col_best_solution, :));
-
-
-[centroids, ~, ~] = getClusterCentroids(data2cluster, clusteringSolutionGMM);
-
-
-% add the cluster values to the proper non NaN positions:
-clusteringSolutionGMMFinal = NaN(size(ind_NaN));
-clusteringSolutionGMMFinal(~ind_NaN) = clusteringSolutionGMM;
-
-
 
 
 end

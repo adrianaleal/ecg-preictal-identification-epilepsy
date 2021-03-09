@@ -10,9 +10,7 @@
 % 
 % Contact Info: sm.kalami@gmail.com, info@yarpiz.com
 %
-
-function [IDX, isnoise]=DBSCAN(X,epsilon,MinPts)
-
+function [IDX, isnoise]=DBSCAN_ORIGINAL(X,epsilon,MinPts)
     C=0;
     
     n=size(X,1);
@@ -68,8 +66,4 @@ function [IDX, isnoise]=DBSCAN(X,epsilon,MinPts)
     function Neighbors=RegionQuery(i)
         Neighbors=find(D(i,:)<=epsilon);
     end
-
 end
-
-
-

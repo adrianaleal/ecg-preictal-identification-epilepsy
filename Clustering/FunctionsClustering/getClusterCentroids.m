@@ -1,5 +1,5 @@
 function [centroids, n_cluster_values, dimension] = ...
-    getClusterCentroids(data2cluster,clusterSolution)
+    getClusterCentroids(data2cluster, clusterSolution)
 
 n_cluster_values = unique(clusterSolution);
 
