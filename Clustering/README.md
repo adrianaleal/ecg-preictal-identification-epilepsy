@@ -31,6 +31,5 @@ The script numSuplots.m is used to automatically compute the number of subplots 
 
 Matlab toolboxes required:
 
-- Signal Processing
-- Image Processing
+- Statistics and Machine Learning
 

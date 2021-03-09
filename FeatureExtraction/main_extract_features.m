@@ -40,18 +40,19 @@ addpath(genpath(fullfile(cd, 'HRVFeatures')))
 
 %% Time-domain features
 
-hrv_td = time_features(RRI_series_segment);
+hrv_td = time_features(RRI_series_segment)
 
 %% Frequency-domain features
 
 [hrv_fd, interp_RRI_series_segment] = frequency_features(RRI_series_segment,...
     time_RR_intervals, plotFigure);
+hrv_fd
 
 %% Nonlinear features
 
 %% Poincaré plot
 
-[SD1, SD2, SD1toSD2] = poincare_plot(RRI_series_segment, plotFigure);
+[SD1, SD2, SD1toSD2] = poincare_plot(RRI_series_segment, plotFigure)
 
 %% Detrended Fluctuation Analysis
 % - alpha1: Log-log slope of DFA in the low-scale region. [4 11]
@@ -62,8 +63,8 @@ scale_range = [4 11; 11 64];
     monofractal_detrended_fluctuation_analysis(RRI_series_segment, scale_range, ...
     plotFigure);
 
-DFA_alpha1 = alpha_vec(1);
-DFA_alpha2 = alpha_vec(2);
+DFA_alpha1 = alpha_vec(1)
+DFA_alpha2 = alpha_vec(2)
 
 
 %% normalize signal
@@ -81,13 +82,13 @@ if ~isempty(interp_RRI_series_segment)
     % single column.
     % m default value is 2
     
-    ApEn = approximateEntropy(sig_norm);
+    ApEn = approximateEntropy(sig_norm)
     
     %% Sample entropy
     
     m = 2;
     r_tolerance = 0.2;
-    SampEn = sample_entropy(sig_norm, m, r_tolerance);
+    SampEn = sample_entropy(sig_norm, m, r_tolerance)
     
     %% Phase Space Reconstruction
     % (1) Time delay was estimated using the first local minimum of the average
@@ -109,15 +110,15 @@ if ~isempty(interp_RRI_series_segment)
     
     expansion_range = [1 30];
     LLE = lyapunovExponent(sig_norm, fs, 'Dimension', eDimPSR, ...
-        'Lag', tauPSR, 'ExpansionRange', expansion_range);
+        'Lag', tauPSR, 'ExpansionRange', expansion_range)
     
     %% Correlation dimension
     % estimates the correlation dimension of the uniformly sampled
     % time-domain signal
     Np = 100;
     min_radius = 0.05;
-    [CD, ~, ~] = correlationDimension(sig_norm, 'Dimension', eDimPSR, ...
-        'Lag', tauPSR, 'MinRadius', min_radius, 'NumPoints', Np);
+    CD = correlationDimension(sig_norm, 'Dimension', eDimPSR, ...
+        'Lag', tauPSR, 'MinRadius', min_radius, 'NumPoints', Np)
     
     %%
     if plotFigure
@@ -168,8 +169,8 @@ end
 
 %% plot Figure S8 in Supplementary Material 
 
-% choose how many features you want to observe in plot: 
-% check the features' names in feat_names2analyse
+% select the features (see the names in feat_names2analyse) that you want
+% to observe in figure:
 feat_names = {'RRMean', 'LF_POWER', 'SampEn'}
 patient_name = '8902';
 plotSignal2Features(feat_names, patient_name)

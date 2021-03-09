@@ -50,7 +50,7 @@ function hrv_out = time_features(RRI_series_segment)
 
 hrv_out = [];
 
-var_names = {'NN50', 'pNN50',  'RMSSD', 'SDNN', 'SDSD', 'RRMean', ...
+var_names = {'NN50', 'pNN50', 'RMSSD', 'SDNN', 'SDSD', 'RRMean', ...
     'RRMin', 'RRMax', 'RRVar'};
 
 hrv_out = array2table(zeros(1,numel(var_names)), 'VariableNames', var_names);
