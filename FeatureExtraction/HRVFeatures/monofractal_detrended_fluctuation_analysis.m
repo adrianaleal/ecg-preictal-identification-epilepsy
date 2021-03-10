@@ -376,7 +376,7 @@ if plotFigure
             R2 = C(1,2)^2;
             
             % if latex
-            % alpha_legend{ii} = ['$\alpha_' num2str(aa) ' = ' ...
+            % alpha_legend{aa} = ['$\alpha_' num2str(aa) ' = ' ...
             %     num2str(round(fit_vec(aa,1)*1000)/1000)...
             %     ' \, (R^2 = ' num2str(round(R2*1000)/1000) ')$'];
             
@@ -391,7 +391,7 @@ if plotFigure
             end
         else
             % if latex
-            % alpha_legend{ii} = ['$\alpha_' num2str(aa) ' = '...
+            % alpha_legend{aa} = ['$\alpha_' num2str(aa) ' = '...
             %     num2str(round(fit_vec(aa,1)*1000)/1000) '$'];
             
             if n_scale_range==1
@@ -405,13 +405,12 @@ if plotFigure
         
     end
     
-
     % xlabel('$log(n)$'); ylabel('$log\big[ F(n) \big]$'); % if latex:
     xlabel('log10(n)'); ylabel('log10[F(n)]');
     set(gca,'XTick', 2.^(1:15)); % Set ticks at powers of two
 
     legend(['DFA', alpha_legend], 'Location', 'northwest');
-
+    
 end
 
 
