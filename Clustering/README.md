@@ -1,5 +1,4 @@
-# Heart-Rate-Variability-Preictal-Identification-Epilepsy
-Heart Rate Variability Analysis for the Identification of the Preictal Interval in Patients with Drug-resistant Epilepsy
+# Heart Rate Variability Analysis for the Identification of the Preictal Interval in Patients with Drug-resistant Epilepsy
 
 __CLUSTERING:__
 
