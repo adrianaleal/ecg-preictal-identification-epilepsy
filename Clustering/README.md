@@ -18,10 +18,10 @@ The following clustering methods were used:
 
 The following cluster solution evaluation methods were used:
 
-(1) Validity indices based on cluster labels:
+- Validity indices based on cluster labels:
     - Dunn's index (DI) --> dunns.m
 
-(2) Validity indices based on cluster prototypes:
+- Validity indices based on cluster prototypes:
     - Intra cluster variance (ICV) --> compactness.m
     - Overall cluster deviation (OD) --> compactness.m
 
