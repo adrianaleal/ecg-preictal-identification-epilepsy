@@ -17,18 +17,8 @@ end
 
 frequency_clusters = [n_cluster_values histc(clusteringSolution, n_cluster_values)];
 
-if isequal(sort(frequency_clusters),frequency_clusters)
-    % change the cluster classes
-    frequency_clusters = [sort(frequency_clusters(:,1)) ...
-        sort(frequency_clusters(:,2),'descend')];
-    
-    clusteringSolutionChanged = clusteringSolution;
-    
-    for ii = 1:size(frequency_clusters,1)
-        clusteringSolutionChanged(clusteringSolution==frequency_clusters(ii,1)) = frequency_clusters(ii,1);
-    end
-    clusteringSolution = clusteringSolutionChanged;
-end
+[clusteringSolution, frequency_clusters] = assessFrequencyClusters( ...
+    clusteringSolution, frequency_clusters);
 
 frequency_smaller_cluster = frequency_clusters(end,2);
 
