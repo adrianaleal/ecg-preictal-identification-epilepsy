@@ -81,8 +81,6 @@ for ss = 1:n_seiz
     feat_data_norm_no_NaN = feat_data_norm(~ind_NaN,:);
     
     
-    
-    
     %% Run K-means clustering
     
     kmeans_name = 'kmeans_k';
@@ -113,7 +111,7 @@ for ss = 1:n_seiz
         
     end
     
-    %% Run DBSCAN Clustering
+    %% Run DBSCAN clustering
     dbscan_name = 'dbscan_d';
     if any(~cellfun(@isempty,strfind(clustering_methods(ss),dbscan_name)))
         
@@ -127,7 +125,7 @@ for ss = 1:n_seiz
         
     end
     
-    %% Run gaussian mixture model clustering
+    %% Run Gaussian mixture model clustering
     
     gmm_name = 'gmm_k';
     if any(~cellfun(@isempty,strfind(clustering_methods(ss), gmm_name)))
